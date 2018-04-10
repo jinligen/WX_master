@@ -5,13 +5,22 @@ WORKERS = 4
 #服务端口
 SERVER_PORT = 6789
 #接口密码
-SECRET = ''
+SECRET = '123456789'
 #slave 缺省的取任务数量
 TO_SLAVE_COUNT = 500 
 #任务最大重试次数
 TASK_RETRY = 5 
 #finsh set 清理的阀值
-TASK_AMOUNT = 2500 
+TASK_AMOUNT = 10000 
+# redis任务容量(所有队列里的任务),
+# 50万的任务，需600M内存。正常需要300M的内存，
+# redis在持久化时需要额外的300M来确保子进程
+# 写入rdb，确保有600M以上内存来容纳50万任务。
+REDIS_AMOUNT = 500000
+# clear_redis 循环的时间
+LOOP_INTERVAL = 60
+# clera_redis 清理TASK_DOING的天数
+DOING_CLEAR = 1
 #任务队列
 TASK_TODO = 'wx_todo'
 #正在做的任务
