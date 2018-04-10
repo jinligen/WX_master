@@ -95,6 +95,12 @@ def queue():
             'msg': 'duplicate',
             'timestamp': get_current_timestamp()})
 
+    if r == 'full':
+        return jsonify({
+            'code': '0',
+            'msg': 'Failed,master is full,wait...',
+            'timestamp': get_current_timestamp()})        
+
     return jsonify({
         'code': '1',
         'msg': 'success',
@@ -129,6 +135,12 @@ def promote():
     if not r:
         abort(500,'save task error')
 
+    if r == 'full':
+        return jsonify({
+            'code': '0',
+            'msg': 'Failed,master is full,wait...',
+            'timestamp': get_current_timestamp()})
+
     return jsonify({
         'code': '1',
         'msg': 'success',
@@ -147,16 +159,20 @@ def queues():
     if not isinstance(tasks,list):
         abort(403,'tasks is wrong')
 
-    if CURSOR.save_tasks_to_redis(tasks):
-        return jsonify({
-            'code': '1',
-            'msg': 'success',
-            'timestamp': get_current_timestamp()})
-    else:
+    r = CURSOR.save_tasks_to_redis(tasks)
+    if not r:
+        abort(500,'save task error')     
+
+    if r == 'full':
         return jsonify({
             'code': '0',
-            'msg': 'failed',
+            'msg': 'Failed,master is full,wait...',
             'timestamp': get_current_timestamp()})        
+
+    return jsonify({
+        'code': '1',
+        'msg': 'success',
+        'timestamp': get_current_timestamp()})
 
 
 @app.route('/get_tasks',methods=['GET', 'POST'])
