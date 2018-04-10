@@ -208,11 +208,12 @@ def back_taskids():
     task_ids = request.get_json()
     if not isinstance(task_ids,dict):
         abort(403,'results is wrong')
+        
+    task_ids_finish = task_ids['finish']
+    CURSOR.task_finished(task_ids_finish)
 
-    CURSOR.task_finished(task_ids)
-
-
-    for task_id in task_ids['failed']:
+    task_ids_failed = task_ids['failed']
+    for task_id in task_ids_failed:
         try:
             CURSOR.task_failed(task_id)
         except:
