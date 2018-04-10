@@ -25,6 +25,8 @@ class redis_task(object):
 
     def save_task_to_redis(self,task):
         """save task to todo list"""
+        if self.R.dbsize() >= REDIS_AMOUNT:
+            return 'full'
         try:
             task_id = task['task_id']
             if self.R.keys(task_id):
@@ -40,6 +42,8 @@ class redis_task(object):
 
     def save_tasks_to_redis(self,tasks):
         """save tasks to todo list"""
+        if self.R.dbsize() >= REDIS_AMOUNT:
+            return 'full'        
         p = self.R.pipeline(transaction=False)
         try:
             for task in tasks:
@@ -56,6 +60,8 @@ class redis_task(object):
 
     def save_task_to_redis_promote(self,task):
         """save task to todo by promote channel"""
+        if self.R.dbsize() >= REDIS_AMOUNT:
+            return 'full'        
         try:
             task_id = task['task_id']
             if self.R.sismember(TASK_DOING, task_id) or \
@@ -126,14 +132,16 @@ class redis_task(object):
 
     def trim_finish_set(self):
         """trim finish set to empty"""
+        p = self.R.pipeline(transaction=False)
         try:
             count = self.R.scard(TASK_FINISH)
             if count <= TASK_AMOUNT:
                 return True
             need_clear = count - TASK_AMOUNT
             clear_list = [self.R.spop(TASK_FINISH) for i in xrange(need_clear)]
-            map(self.R.delete, clear_list)
-            clear_redis_log.info('success clear finish set,count:{}'.format(count))
+            map(p.delete, clear_list)
+            p.execute()
+            clear_redis_log.info('success clear finish set,count:{}'.format(need_clear))
             return True
         except Exception as e:
             error_record('001')
